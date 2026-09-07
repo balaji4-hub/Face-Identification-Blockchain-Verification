@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VeriFace Chain - Face Discovery & Blockchain Evidence Verification</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#fffbeb',
+              100: '#fef3c7',
+              200: '#fde68a',
+              300: '#fcd34d',
+              400: '#fbbf24',
+              500: '#f59e0b',
+              600: '#d97706',
+              700: '#b45309',
+            },
+            dark: {
+              bg: '#0a0c10',
+              surface: '#12151d',
+              card: '#181b26',
+              border: '#232738',
+              hover: '#202534'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #0a0c10;
+      color: #f1f5f9;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .glow-amber {
+      box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.45);
+    }
+    .glow-orange {
+      box-shadow: 0 0 25px -5px rgba(249, 115, 22, 0.45);
+    }
+    .glow-green {
+      box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.4);
+    }
+    .glow-red {
+      box-shadow: 0 0 25px -5px rgba(239, 68, 68, 0.4);
+    }
+    .stage-pulse {
+      animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.15); opacity: 0.4; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #12151d;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #2d3348;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col custom-scrollbar selection:bg-amber-500 selection:text-white">
+
+  <!-- TOP HEADER & NAVIGATION -->
+  <header class="sticky top-0 z-50 border-b border-dark-border bg-dark-bg/95 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Logo & Title -->
+        <div class="flex items-center gap-3 cursor-pointer" onclick="showView('home')">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-xl tracking-tight text-white">VERIFACE<span class="text-amber-500">CHAIN</span></span>
+              <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">v2.0</span>
+            </div>
+            <p class="text-xs text-slate-400 hidden sm:block">Face Discovery & Tamper-Proof Blockchain Evidence</p>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex items-center gap-1 sm:gap-2">
+          <button id="nav-home" onclick="showView('home')" class="px-3 py-1.5 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 transition">
+            Home
+          </button>
+          <button id="nav-discover" onclick="showView('discover')" class="px-3 py-1.5 text-sm font-medium rounded-lg text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-orange-500/25 transition">
+            Discovery Pipeline
+          </button>
+          <button id="nav-verify" onclick="showView('verify')" class="px-3 py-1.5 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 transition">
+            Verify Record
+          </button>
+          <button id="nav-history" onclick="showView('history')" class="px-3 py-1.5 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 transition">
+            Audit History
+          </button>
+        </nav>
+
+        <!-- Blockchain Node Status -->
+        <div class="hidden md:flex items-center gap-2 pl-4 border-l border-dark-border text-xs">
+          <span class="relative flex h-2.5 w-2.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+          </span>
+          <span class="text-slate-300 font-mono" id="node-status-text">Sim-EVM #105 (Chain: 1337)</span>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ================================================================= -->
+    <!-- VIEW 1: HOME / LANDING -->
+    <!-- ================================================================= -->
+    <section id="view-home" class="space-y-12 hidden">
+      <!-- Hero Banner -->
+      <div class="relative overflow-hidden rounded-3xl border border-dark-border bg-gradient-to-b from-dark-surface to-dark-bg p-8 sm:p-14 text-center">
+        <div class="absolute -top-24 -left-24 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-orange-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold mb-6">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          Decentralized Digital Forensics Architecture
+        </div>
+
+        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight max-w-4xl mx-auto leading-tight">
+          Public Face Discovery & <br>
+          <span class="bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-orange-400 to-amber-200">
+            Immutable Blockchain Evidence
+          </span>
+        </h1>
+
+        <p class="mt-6 text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+          Upload any face photo or paste directly from Chrome to search public web archives, calculate non-reversible biometric fingerprints, and notarize non-repudiable evidence onto an EVM blockchain smart contract.
+        </p>
+
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-4">
+          <button onclick="showView('discover')" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold text-sm shadow-lg shadow-orange-500/30 flex items-center gap-2 transition transform active:scale-95">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            Launch Discovery Pipeline
+          </button>
+          <button onclick="showView('verify')" class="px-6 py-3.5 rounded-xl bg-dark-card hover:bg-dark-hover border border-dark-border text-slate-300 hover:text-white font-semibold text-sm transition">
+            Verify Blockchain Record
+          </button>
+        </div>
+      </div>
+
+      <!-- 3 Core Architecture Pillars -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="p-6 rounded-2xl bg-dark-surface border border-dark-border hover:border-amber-500/40 transition">
+          <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-400 flex items-center justify-center mb-4">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">1. Zero-Biometric Privacy</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Extracts 512-dimensional facial embeddings for real-time cosine comparison. Raw biometric vectors are ephemerally wiped immediately after match scoring.
+          </p>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-dark-surface border border-dark-border hover:border-orange-500/40 transition">
+          <div class="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/25 text-orange-400 flex items-center justify-center mb-4">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">2. Multi-Candidate Discovery</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Crawls public web archives for candidate faces. Compares similarity using strict forensic thresholds: >= 75% High Confidence, 50-75% Possible, &lt; 50% No Match.
+          </p>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-dark-surface border border-dark-border hover:border-amber-500/40 transition">
+          <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-400 flex items-center justify-center mb-4">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">3. Immutable Smart Contract</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Only confirmed matches produce canonical RFC-8785 evidence, hashed via SHA-256 and anchored to <code class="text-xs text-amber-400 font-mono">EvidenceRegistry.sol</code> on Ethereum/EVM.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- VIEW 2: DISCOVERY & LIVE PIPELINE -->
+    <!-- ================================================================= -->
+    <section id="view-discover" class="space-y-8">
+      
+      <!-- Section Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-extrabold text-white tracking-tight">Facial Discovery & Analysis Pipeline</h2>
+          <p class="text-sm text-slate-400">Upload your own face photo, paste from Chrome (Ctrl+V), or load the standard target face to test a match.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="loadSample('test_face')" class="px-4 py-2 text-xs font-semibold rounded-lg bg-dark-card border border-amber-500/40 text-amber-300 hover:bg-dark-hover transition flex items-center gap-2 shadow-sm">
+            <span>📷</span> Load Standard Test Face (Target Match)
+          </button>
+        </div>
+      </div>
+
+      <!-- DROP & PASTE ZONE -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left 2 cols: Upload / Paste Area -->
+        <div class="lg:col-span-2">
+          <div id="drop-zone" class="relative group border-2 border-dashed border-dark-border hover:border-amber-500 rounded-2xl p-8 text-center bg-dark-surface transition duration-200 cursor-pointer">
+            <input type="file" id="file-input" accept="image/*" class="hidden" />
+            
+            <div class="flex flex-col items-center justify-center space-y-4">
+              <div class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center group-hover:scale-110 transition duration-200">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+              </div>
+
+              <div>
+                <p class="text-base font-bold text-white">
+                  Drag & Drop Face Image Here, Browse, or <span class="text-amber-400 underline decoration-amber-500 underline-offset-4">Paste from Clipboard (Ctrl+V)</span>
+                </p>
+                <p class="text-xs text-slate-400 mt-1">
+                  Supports any image copied from Chrome or downloaded (JPG, PNG, WEBP)
+                </p>
+              </div>
+
+              <div class="flex items-center gap-3 pt-2">
+                <button type="button" onclick="document.getElementById('file-input').click()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md shadow-orange-500/25 transition">
+                  Choose File from Computer
+                </button>
+                <span class="text-xs text-slate-500 font-mono">or press Ctrl+V anywhere</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right 1 col: Selected Face Preview & Pipeline Trigger -->
+        <div class="rounded-2xl bg-dark-surface border border-dark-border p-6 flex flex-col justify-between">
+          <div>
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3">Loaded Face Image</h3>
+            
+            <div id="preview-container" class="relative w-full h-44 rounded-xl overflow-hidden bg-dark-bg border border-dark-border flex items-center justify-center mb-4">
+              <img id="image-preview" class="max-h-full max-w-full object-contain hidden" alt="Selected Face" />
+              <div id="preview-placeholder" class="text-xs text-slate-500 text-center px-4">
+                <svg class="w-8 h-8 mx-auto mb-2 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                No image loaded yet.<br>Paste (Ctrl+V) or drag an image.
+              </div>
+            </div>
+
+            <div id="preview-meta" class="text-xs font-mono text-slate-400 space-y-1 hidden">
+              <div class="flex justify-between"><span>File:</span> <span id="meta-filename" class="text-slate-200 truncate max-w-[150px]">sample.webp</span></div>
+              <div class="flex justify-between"><span>Size:</span> <span id="meta-filesize" class="text-slate-200">124 KB</span></div>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-dark-border space-y-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">Visual Search Provider</label>
+              <select id="search-provider-select" class="w-full text-xs font-mono bg-dark-bg border border-dark-border text-slate-200 rounded-lg p-2 focus:outline-none focus:border-amber-500">
+                <option value="mock" selected>Simulated Reverse Search (Offline Demo)</option>
+                <option value="serpapi">Google Lens / SerpApi (Live Reverse Search)</option>
+                <option value="authorized_api">Authorized Corporate API Endpoint</option>
+              </select>
+            </div>
+
+            <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+              <input type="checkbox" id="register-on-chain-chk" checked class="rounded border-slate-700 text-amber-500 focus:ring-amber-500 bg-slate-900">
+              <span>Register on Blockchain (Confirmed Matches Only)</span>
+            </label>
+
+            <button id="run-pipeline-btn" onclick="startPipelineExecution()" disabled class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold text-sm shadow-lg shadow-orange-500/20 transition flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              Run 10-Stage Pipeline
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- VERTICAL FLOW PIPELINE EXECUTION TRACKER -->
+      <div id="pipeline-tracker" class="rounded-2xl bg-dark-surface border border-dark-border p-6 sm:p-8 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-8 pb-4 border-b border-dark-border">
+          <div class="flex items-center gap-3">
+            <span class="w-3.5 h-3.5 rounded-full bg-amber-500 animate-ping"></span>
+            <div>
+              <h3 class="font-extrabold text-white text-base">End-to-End Forensics Pipeline Execution</h3>
+              <p class="text-xs text-slate-400">Step-by-step downward progression from face input to blockchain audit</p>
+            </div>
+          </div>
+          <div class="text-xs font-mono text-slate-400">
+            Pipeline ID: <span id="active-pipeline-id" class="text-amber-400 font-bold">VFC-INIT</span>
+          </div>
+        </div>
+
+        <!-- Vertical Timeline Flow Container -->
+        <div class="max-w-3xl mx-auto space-y-0" id="pipeline-stages-container">
+          <!-- Dynamically filled with vertical cards connected by arrows -->
+        </div>
+      </div>
+
+      <!-- PIPELINE RESULTS SECTION -->
+      <div id="pipeline-results" class="space-y-6 hidden">
+        
+        <!-- Decision Banner -->
+        <div id="decision-banner" class="rounded-2xl p-6 border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div id="decision-icon" class="w-12 h-12 rounded-xl flex items-center justify-center">
+              <!-- Dynamically set icon -->
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 id="decision-title" class="text-xl font-extrabold">MATCH STATUS</h3>
+                <span id="decision-badge" class="px-2.5 py-0.5 text-xs font-bold rounded-full">0.0%</span>
+              </div>
+              <p id="decision-desc" class="text-xs text-slate-400 mt-1">Evaluation explanation</p>
+            </div>
+          </div>
+          <div class="text-right font-mono text-xs text-slate-400">
+            <div>Execution Time: <span id="pipeline-duration" class="text-white font-bold">142 ms</span></div>
+            <div>Blockchain Status: <span id="receipt-status-text" class="font-bold">ON BLOCKCHAIN</span></div>
+          </div>
+        </div>
+
+        <!-- SIDE-BY-SIDE FACE COMPARISON -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- Card 1: Input Face -->
+          <div class="rounded-2xl bg-dark-surface border border-dark-border p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold tracking-wider uppercase text-amber-400">1. Consented Input Face Scan</span>
+              <span class="text-[11px] font-mono text-slate-400" id="res-input-dimensions">Dimensions: 800x800</span>
+            </div>
+            <div class="w-full h-64 rounded-xl bg-dark-bg border border-dark-border flex items-center justify-center overflow-hidden">
+              <img id="res-input-img" class="max-h-full max-w-full object-contain" src="" alt="Input Face" />
+            </div>
+            <div class="text-xs font-mono space-y-1.5 pt-2 border-t border-dark-border">
+              <div class="flex justify-between text-slate-400">
+                <span>Input Image SHA-256:</span>
+              </div>
+              <div class="p-2 rounded-lg bg-dark-bg text-[11px] text-slate-300 truncate font-mono select-all border border-dark-border" id="res-input-hash">
+                0x00000000000000000000000000000000
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Discovered Match -->
+          <div class="rounded-2xl bg-dark-surface border border-dark-border p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold tracking-wider uppercase" id="res-match-card-title">2. Discovered Candidate Online</span>
+              <span class="text-[11px] font-mono font-bold" id="res-best-similarity">Similarity: 0.0%</span>
+            </div>
+            <div class="w-full h-64 rounded-xl bg-dark-bg border border-dark-border flex items-center justify-center overflow-hidden">
+              <img id="res-match-img" class="max-h-full max-w-full object-contain" src="" alt="Candidate Face" />
+            </div>
+            <div class="text-xs font-mono space-y-1.5 pt-2 border-t border-dark-border">
+              <div class="flex justify-between text-slate-400">
+                <span>Discovered Source Page:</span>
+                <a id="res-source-link" href="#" target="_blank" class="text-amber-400 hover:underline">View Source</a>
+              </div>
+              <div class="p-2 rounded-lg bg-dark-bg text-[11px] text-slate-300 truncate font-mono border border-dark-border" id="res-match-url">
+                https://public-web-archive.org/posts/verified_identity_profile
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ALL CANDIDATES LIST -->
+        <div class="rounded-2xl bg-dark-surface border border-dark-border p-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-white text-sm uppercase tracking-wider">All Discovered Candidates Evaluation</h3>
+            <span class="text-xs text-slate-400" id="candidate-count-text">3 candidates evaluated</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="candidates-grid">
+            <!-- Dynamically populated with realistic photos -->
+          </div>
+        </div>
+
+        <!-- DIGITAL EVIDENCE & BLOCKCHAIN NOTARIZATION -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          <!-- Evidence Record Card -->
+          <div class="rounded-2xl bg-dark-surface border border-dark-border p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <h3 class="font-bold text-white text-sm">Canonical Digital Evidence</h3>
+              </div>
+              <button onclick="toggleEvidenceJson()" class="text-xs text-amber-400 hover:underline">Toggle Raw JSON</button>
+            </div>
+
+            <div id="evidence-content-container">
+              <!-- Dynamically rendered -->
+            </div>
+
+            <pre id="evidence-raw-json" class="p-3 rounded-xl bg-dark-bg text-[10px] font-mono text-slate-300 max-h-48 overflow-y-auto hidden custom-scrollbar border border-dark-border"></pre>
+          </div>
+
+          <!-- Blockchain Receipt Card -->
+          <div class="rounded-2xl bg-dark-surface border border-dark-border p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </div>
+                <h3 class="font-bold text-white text-sm">Blockchain Notarization Receipt</h3>
+              </div>
+              <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full" id="bc-status-pill">
+                CONFIRMED
+              </span>
+            </div>
+
+            <div id="blockchain-receipt-container">
+              <!-- Dynamically rendered -->
+            </div>
+
+            <div class="pt-2">
+              <button id="verify-this-btn" onclick="goToVerificationWithCurrent()" class="w-full py-2.5 rounded-xl bg-dark-card hover:bg-dark-hover border border-dark-border text-white text-xs font-semibold flex items-center justify-center gap-2 transition">
+                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                Verify on Blockchain Verifier Tab
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- VIEW 3: BLOCKCHAIN INDEPENDENT VERIFIER -->
+    <!-- ================================================================= -->
+    <section id="view-verify" class="space-y-8 hidden">
+      
+      <div>
+        <h2 class="text-2xl font-extrabold text-white tracking-tight">Independent Blockchain Verification Engine</h2>
+        <p class="text-sm text-slate-400">Cryptographically audit any evidence hash or JSON against the immutable on-chain smart contract registry.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left 2 cols: Verification Input & Output -->
+        <div class="lg:col-span-2 space-y-6">
+          <div class="rounded-2xl bg-dark-surface border border-dark-border p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-white text-sm uppercase tracking-wider">Query Blockchain State</h3>
+              <span class="text-xs text-slate-400">Smart Contract: <code class="text-amber-400 font-mono">EvidenceRegistry.sol</code></span>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1.5">Evidence SHA-256 Fingerprint or Canonical JSON</label>
+              <textarea id="verify-input" rows="4" placeholder="Enter 64-character hex hash (e.g. 0xb3e4c... or paste evidence JSON)..." class="w-full rounded-xl bg-dark-bg border border-dark-border p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+              <button onclick="executeVerification()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold text-xs shadow-md shadow-orange-500/25 transition flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Verify on Blockchain
+              </button>
+              <button onclick="pasteLatestHashToVerify()" class="px-3 py-2 text-xs rounded-lg bg-dark-card border border-dark-border text-amber-300 hover:bg-dark-hover transition flex items-center gap-1.5">
+                <span>⚡</span> Load Latest Pipeline Hash
+              </button>
+              <button onclick="executeTamperDemo()" class="px-3 py-2 text-xs rounded-lg bg-orange-500/15 text-orange-300 hover:bg-orange-500/25 border border-orange-500/35 transition flex items-center gap-1.5">
+                <span>⚠️</span> Simulate Malicious Tampering Demo
+              </button>
+            </div>
+          </div>
+
+          <!-- Recently Notarized Hashes Quick Select -->
+          <div class="rounded-2xl bg-dark-surface border border-dark-border p-5 space-y-3" id="recent-hashes-card">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Recently Registered Blockchain Hashes</h4>
+              <button onclick="loadRecentHashesForVerify()" class="text-xs text-amber-400 hover:underline">Refresh</button>
+            </div>
+            <div id="recent-hashes-list" class="space-y-2 text-xs font-mono">
+              <div class="text-slate-500 text-xs">Fetching registered records...</div>
+            </div>
+          </div>
+
+          <!-- Verification Result Banner -->
+          <div id="verify-result-box" class="rounded-2xl border p-6 hidden">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Right 1 col: Educational Cryptographic Explainer -->
+        <div class="rounded-2xl bg-dark-surface border border-dark-border p-6 space-y-4">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 004.07 7.07"/></svg>
+          </div>
+          <h3 class="font-bold text-white text-base">How Blockchain Verification Works</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Every piece of evidence is canonicalized into deterministic JSON. Even if someone modifies a single decimal place in the match score, the SHA-256 fingerprint mutates completely (Avalanche Effect).
+          </p>
+          <div class="p-3 rounded-xl bg-dark-bg border border-dark-border text-[11px] font-mono text-slate-400 space-y-2">
+            <div><span class="text-slate-500">Registered on Chain:</span> <br><span class="text-emerald-400 break-all">0xb3e4c... (VALID & IMMUTABLE)</span></div>
+            <div><span class="text-slate-500">Altered / Forged:</span> <br><span class="text-rose-400 break-all">0x7d19a... (REJECTED BY CONTRACT)</span></div>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            The smart contract guarantees that evidence is timestamped and verifiable by any external auditor without exposing raw biometrics.
+          </p>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- VIEW 4: AUDIT HISTORY -->
+    <!-- ================================================================= -->
+    <section id="view-history" class="space-y-6 hidden">
+      <div>
+        <h2 class="text-2xl font-extrabold text-white tracking-tight">Audit Trail & Transaction History</h2>
+        <p class="text-sm text-slate-400">List of recent face discovery pipeline runs and blockchain transactions in this session.</p>
+      </div>
+
+      <div class="rounded-2xl bg-dark-surface border border-dark-border overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-dark-bg text-slate-400 uppercase tracking-wider border-b border-dark-border">
+              <tr>
+                <th class="px-6 py-4">Pipeline ID</th>
+                <th class="px-6 py-4">Timestamp</th>
+                <th class="px-6 py-4">Input File</th>
+                <th class="px-6 py-4">Similarity</th>
+                <th class="px-6 py-4">Evidence Hash</th>
+                <th class="px-6 py-4">Block #</th>
+                <th class="px-6 py-4">Action</th>
+              </tr>
+            </thead>
+            <tbody id="history-table-body" class="divide-y divide-dark-border text-slate-300">
+              <tr>
+                <td colspan="7" class="px-6 py-8 text-center text-slate-500 font-sans">No pipeline runs executed yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="px-4 py-3 rounded-xl bg-slate-900 border border-amber-500/40 shadow-2xl text-xs font-medium text-white flex items-center gap-2">
+      <span id="toast-icon">✓</span>
+      <span id="toast-message">Message</span>
+    </div>
+  </div>
+
+  <script>
+    // System State
+    let currentSelectedFile = null;
+    let currentPipelineResult = null;
+    let activeView = 'discover';
+
+    // 10 STAGES DEFINITION MATCHING BACKEND PIPELINE
+    const STAGE_CONFIG = [
+      { key: "input_validation", num: "01", title: "Input Image Validation & Face Scan", desc: "Verifies image format, minimum resolution, and computes cryptographic SHA-256 byte fingerprint" },
+      { key: "face_detection", num: "02", title: "Face Detection & Localization", desc: "Locates primary face bounding box using OpenCV Deep Neural Network (DNN) and Haar cascades" },
+      { key: "face_quality", num: "03", title: "Illumination & Biometric Quality Check", desc: "Measures Laplacian variance blur, contrast ratio, and luminance to ensure forensic reliability" },
+      { key: "face_embedding", num: "04", title: "512-D Face Biometric Embedding", desc: "Generates 512-dimensional normalized biometric embedding vector from cropped face region" },
+      { key: "visual_search", num: "05", title: "Public Web / Social Media Visual Search [Simulated Demo]", desc: "Simulates discovery across public archives & social platforms with realistic web re-compression" },
+      { key: "candidate_analysis", num: "06", title: "Candidate Retrieval & Multi-Face Analysis", desc: "Safely downloads candidate images and executes face detection and biometric encoding" },
+      { key: "match_decision", num: "07", title: "Cosine Similarity Scoring & Match Ranking", desc: "Computes cosine similarity (A·B)/(|A|×|B|) against all candidates with strict 75% match threshold" },
+      { key: "evidence_generation", num: "08", title: "Extract Post Evidence (URL, Text, Image, Date)", desc: "Assembles discovered appearance metadata: source URL, candidate SHA-256, and timestamp" },
+      { key: "canonical_hashing", num: "09", title: "Deterministic Canonical Hashing (SHA-256)", desc: "Sorts evidence via RFC-8785 JSON rules and computes immutable 64-char SHA-256 fingerprint" },
+      { key: "blockchain_registration", num: "10", title: "Blockchain Storage & Smart Contract Notarization", desc: "Permanently writes evidence fingerprint to EvidenceRegistry.sol smart contract on EVM chain" }
+    ];
+
+    // Navigation Switcher
+    function showView(viewId) {
+      activeView = viewId;
+      ['home', 'discover', 'verify', 'history'].forEach(id => {
+        const sec = document.getElementById(`view-${id}`);
+        const btn = document.getElementById(`nav-${id}`);
+        if (sec) sec.classList.toggle('hidden', id !== viewId);
+        if (btn) {
+          if (id === viewId) {
+            btn.className = "px-3 py-1.5 text-sm font-medium rounded-lg text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-orange-500/25 transition";
+          } else {
+            btn.className = "px-3 py-1.5 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 transition";
+          }
+        }
+      });
+      if (viewId === 'history') fetchHistory();
+      if (viewId === 'verify') loadRecentHashesForVerify();
+    }
+
+    // Toast Notification
+    function showToast(msg, icon = '✓') {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-icon').innerText = icon;
+      document.getElementById('toast-message').innerText = msg;
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+      }, 3800);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Copied to clipboard!', '📋');
+      });
+    }
+
+    // CLIPBOARD PASTE LISTENER (Direct Chrome Image Paste)
+    window.addEventListener('paste', (e) => {
+      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const blob = items[i].getAsFile();
+          handleLoadedFile(blob, 'pasted_from_chrome.png');
+          showToast('Image pasted from clipboard!', '📋');
+          showView('discover');
+          break;
+        }
+      }
+    });
+
+    // DRAG AND DROP HANDLERS
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+
+    ['dragenter', 'dragover'].forEach(name => {
+      dropZone.addEventListener(name, (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-amber-500', 'bg-amber-500/5');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(name => {
+      dropZone.addEventListener(name, (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-amber-500', 'bg-amber-500/5');
+      });
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleLoadedFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleLoadedFile(e.target.files[0]);
+      }
+    });
+
+    function handleLoadedFile(file, overrideName = null) {
+      currentSelectedFile = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const preview = document.getElementById('image-preview');
+        preview.src = e.target.result;
+        preview.classList.remove('hidden');
+        document.getElementById('preview-placeholder').classList.add('hidden');
+        
+        document.getElementById('preview-meta').classList.remove('hidden');
+        document.getElementById('meta-filename').innerText = overrideName || file.name || 'image.png';
+        document.getElementById('meta-filesize').innerText = (file.size / 1024).toFixed(1) + ' KB';
+
+        document.getElementById('run-pipeline-btn').disabled = false;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Load sample target image
+    async function loadSample(sampleName) {
+      try {
+        showToast('Loading target test face...', '⏳');
+        const searchProvider = document.getElementById('search-provider-select') ? document.getElementById('search-provider-select').value : 'mock';
+        const res = await fetch(`/api/pipeline/run-sample?sample_name=${sampleName}&search_provider=${searchProvider}`, { method: 'POST' });
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        
+        // Show in preview container
+        const preview = document.getElementById('image-preview');
+        preview.src = data.input_image_display_url;
+        preview.classList.remove('hidden');
+        document.getElementById('preview-placeholder').classList.add('hidden');
+        document.getElementById('preview-meta').classList.remove('hidden');
+        document.getElementById('meta-filename').innerText = 'test_face.jpg (Known Target)';
+        document.getElementById('meta-filesize').innerText = '11.3 KB';
+        document.getElementById('run-pipeline-btn').disabled = false;
+
+        initVerticalTimeline();
+        renderPipelineExecution(data);
+      } catch (err) {
+        showToast('Failed to load sample: ' + err.message, '✕');
+      }
+    }
+
+    // Execute Pipeline
+    async function startPipelineExecution() {
+      if (!currentSelectedFile) return;
+
+      const runBtn = document.getElementById('run-pipeline-btn');
+      runBtn.disabled = true;
+      runBtn.innerText = 'Executing Pipeline...';
+
+      const tracker = document.getElementById('pipeline-tracker');
+      tracker.classList.remove('hidden');
+      document.getElementById('pipeline-results').classList.add('hidden');
+      
+      const pId = 'VF-2026-' + Math.random().toString(16).substring(2, 8).toUpperCase();
+      document.getElementById('active-pipeline-id').innerText = pId;
+
+      initVerticalTimeline();
+
+      const registerOnChain = document.getElementById('register-on-chain-chk').checked;
+      const searchProvider = document.getElementById('search-provider-select').value;
+      const formData = new FormData();
+      formData.append('file', currentSelectedFile);
+      formData.append('register_on_chain', registerOnChain);
+      formData.append('search_provider', searchProvider);
+
+      try {
+        const res = await fetch('/api/pipeline/run', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.detail || 'Pipeline execution failed');
+        }
+
+        const data = await res.json();
+        setTimeout(() => {
+          renderPipelineExecution(data);
+          runBtn.disabled = false;
+          runBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Run 10-Stage Pipeline`;
+        }, 900);
+
+      } catch (err) {
+        showToast('Error: ' + err.message, '✕');
+        runBtn.disabled = false;
+        runBtn.innerText = 'Run 10-Stage Pipeline';
+      }
+    }
+
+    // VERTICAL FLOW TIMELINE INITIALIZATION
+    function initVerticalTimeline() {
+      const container = document.getElementById('pipeline-stages-container');
+      container.innerHTML = '';
+
+      STAGE_CONFIG.forEach((s, idx) => {
+        const isLast = idx === STAGE_CONFIG.length - 1;
+        const item = document.createElement('div');
+        item.className = "relative flex flex-col";
+        item.innerHTML = `
+          <!-- Stage Card -->
+          <div id="v-stage-${s.key}" class="flex items-start gap-4 p-4 rounded-xl bg-dark-bg border border-dark-border transition duration-300">
+            <!-- Step Badge -->
+            <div id="v-badge-${s.key}" class="w-9 h-9 rounded-xl bg-dark-card border border-dark-border text-slate-400 font-mono text-xs font-bold flex items-center justify-center shrink-0">
+              ${s.num}
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <h4 class="text-xs font-bold text-white tracking-wide">${s.title}</h4>
+                <span id="v-status-${s.key}" class="text-[11px] font-mono text-slate-500 font-semibold uppercase">PENDING</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">${s.desc}</p>
+            </div>
+          </div>
+
+          <!-- Downward Flow Connector -->
+          ${!isLast ? `
+          <div class="flex items-center justify-center my-1.5 py-0.5">
+            <div id="v-arrow-${s.key}" class="flex items-center gap-2 text-slate-600 font-mono text-xs transition duration-200">
+              <span class="h-4 w-px bg-dark-border"></span>
+              <span>↓</span>
+              <span class="h-4 w-px bg-dark-border"></span>
+            </div>
+          </div>` : ''}
+        `;
+        container.appendChild(item);
+      });
+
+      // Quick visual sequence showing progress flowing DOWN
+      STAGE_CONFIG.forEach((s, i) => {
+        setTimeout(() => {
+          const card = document.getElementById(`v-stage-${s.key}`);
+          const badge = document.getElementById(`v-badge-${s.key}`);
+          const status = document.getElementById(`v-status-${s.key}`);
+          const arrow = document.getElementById(`v-arrow-${s.key}`);
+          if (card && badge && status) {
+            card.classList.add('border-amber-500/40', 'bg-amber-500/5');
+            badge.className = "w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 font-mono text-xs font-bold flex items-center justify-center shrink-0 stage-pulse";
+            status.innerText = "RUNNING";
+            status.className = "text-[11px] font-mono text-amber-400 font-bold";
+            if (arrow) arrow.className = "flex items-center gap-2 text-amber-400 font-mono text-xs";
+          }
+        }, i * 110);
+      });
+    }
+
+    // RENDER RESULTS AFTER PIPELINE RUN
+    function renderPipelineExecution(data) {
+      currentPipelineResult = data;
+      document.getElementById('active-pipeline-id').innerText = data.pipeline_id;
+
+      // Update vertical stages completion status
+      STAGE_CONFIG.forEach(s => {
+        const stageData = data.stages ? data.stages[s.key] : null;
+        const card = document.getElementById(`v-stage-${s.key}`);
+        const badge = document.getElementById(`v-badge-${s.key}`);
+        const status = document.getElementById(`v-status-${s.key}`);
+        const arrow = document.getElementById(`v-arrow-${s.key}`);
+
+        if (card && badge && status) {
+          card.classList.remove('border-amber-500/40', 'bg-amber-500/5');
+
+          if (stageData && stageData.status === "SKIPPED") {
+            badge.className = "w-9 h-9 rounded-xl bg-dark-card border border-dark-border text-slate-500 font-mono text-xs font-bold flex items-center justify-center shrink-0";
+            status.innerText = "○ SKIPPED (NO MATCH)";
+            status.className = "text-[11px] font-mono text-slate-400 font-semibold";
+            if (arrow) arrow.className = "flex items-center gap-2 text-slate-600 font-mono text-xs";
+          } else if (stageData && stageData.status === "FAILED") {
+            card.classList.add('border-rose-500/40', 'bg-rose-500/5');
+            badge.className = "w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 font-mono text-xs font-bold flex items-center justify-center shrink-0";
+            status.innerText = "✕ FAILED";
+            status.className = "text-[11px] font-mono text-rose-400 font-bold";
+          } else {
+            card.classList.add('border-emerald-500/30');
+            badge.className = "w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-mono text-xs font-bold flex items-center justify-center shrink-0";
+            const dur = stageData && stageData.duration_ms ? `✓ ${stageData.duration_ms}ms` : '✓ DONE';
+            status.innerText = dur;
+            status.className = "text-[11px] font-mono text-emerald-400 font-bold";
+            if (arrow) arrow.className = "flex items-center gap-2 text-emerald-400 font-mono text-xs";
+          }
+        }
+      });
+
+      // Show Results Section
+      const resSec = document.getElementById('pipeline-results');
+      resSec.classList.remove('hidden');
+      resSec.scrollIntoView({ behavior: 'smooth' });
+
+      // Match Decision Assessment
+      const isMatch = data.best_match && data.best_match.highest_similarity >= 0.75;
+      const isPossible = data.best_match && data.best_match.highest_similarity >= 0.50 && !isMatch;
+      const simPct = data.best_match ? (data.best_match.highest_similarity * 100).toFixed(1) + '%' : '0.0%';
+
+      const decBanner = document.getElementById('decision-banner');
+      const decTitle = document.getElementById('decision-title');
+      const decBadge = document.getElementById('decision-badge');
+      const decDesc = document.getElementById('decision-desc');
+      const decIcon = document.getElementById('decision-icon');
+
+      if (isMatch) {
+        decBanner.className = "rounded-2xl p-6 border flex flex-col sm:flex-row sm:items-center justify-between gap-4 glow-green bg-emerald-950/30 border-emerald-500/40";
+        decTitle.className = "text-xl font-extrabold text-emerald-300";
+        decTitle.innerText = "HIGH CONFIDENCE MATCH FOUND";
+        decBadge.className = "px-2.5 py-0.5 text-xs font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+        decBadge.innerText = `${simPct} Similarity`;
+        decDesc.innerText = "Discovered appearance matches the input face subject with high biometric confidence. Evidence permanently notarized onto blockchain.";
+        decIcon.className = "w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xl";
+        decIcon.innerHTML = "✓";
+        document.getElementById('receipt-status-text').className = "text-emerald-400 font-bold";
+        document.getElementById('receipt-status-text').innerText = "NOTARIZED ON-CHAIN";
+      } else {
+        decBanner.className = "rounded-2xl p-6 border flex flex-col sm:flex-row sm:items-center justify-between gap-4 glow-amber bg-amber-950/30 border-amber-500/40";
+        decTitle.className = "text-xl font-extrabold text-amber-300";
+        decTitle.innerText = "NO MATCH CONFIRMED (NON-MATCH)";
+        decBadge.className = "px-2.5 py-0.5 text-xs font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30";
+        decBadge.innerText = `${simPct} (Threshold: 75.0%)`;
+        decDesc.innerText = "The uploaded face does not match any candidate in the public archive. Evidence generation and blockchain notarization are safely SKIPPED to prevent false records.";
+        decIcon.className = "w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xl";
+        decIcon.innerHTML = "○";
+        document.getElementById('receipt-status-text').className = "text-slate-400 font-bold";
+        document.getElementById('receipt-status-text').innerText = "SKIPPED (NO MATCH)";
+      }
+
+      document.getElementById('pipeline-duration').innerText = (data.total_duration_ms || 120).toFixed(0) + ' ms';
+
+      // Input Image Display
+      const inputImg = document.getElementById('res-input-img');
+      inputImg.src = data.input_image_display_url || '';
+      document.getElementById('res-input-hash').innerText = data.input_image_sha256 || 'N/A';
+      const dims = data.face_detection ? `${data.face_detection.bounding_box[2] - data.face_detection.bounding_box[0]}x${data.face_detection.bounding_box[1] - data.face_detection.bounding_box[3]}` : 'Detected';
+      document.getElementById('res-input-dimensions').innerText = `Face Detected (${dims})`;
+
+      // Discovered Match Candidate Display
+      const matchImg = document.getElementById('res-match-img');
+      const best = data.best_match;
+      if (best) {
+        matchImg.src = best.display_url || best.image_url || '';
+        document.getElementById('res-best-similarity').innerText = `Similarity: ${simPct}`;
+        document.getElementById('res-best-similarity').className = isMatch ? "text-[11px] font-mono font-bold text-emerald-400" : "text-[11px] font-mono font-bold text-amber-400";
+        document.getElementById('res-match-url').innerText = best.page_url || 'Unknown';
+        document.getElementById('res-source-link').href = best.page_url || '#';
+        document.getElementById('res-match-card-title').innerText = isMatch ? "2. Best Discovered Online Match" : "2. Discovered Candidate Profile (Non-Match)";
+      }
+
+      // Candidates Grid (Realistic Photos)
+      const cGrid = document.getElementById('candidates-grid');
+      cGrid.innerHTML = '';
+      if (data.candidates && data.candidates.length) {
+        data.candidates.forEach((c, idx) => {
+          const cPct = (c.highest_similarity * 100).toFixed(1);
+          const isWinner = isMatch && best && c.candidate_id === best.candidate_id;
+          const card = document.createElement('div');
+          card.className = `rounded-xl p-4 border bg-dark-bg space-y-3 ${isWinner ? 'border-amber-500/50 glow-amber' : 'border-dark-border'}`;
+          card.innerHTML = `
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-300 flex items-center gap-1.5">
+                Candidate #${idx + 1}
+                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">SIMULATED</span>
+              </span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${c.highest_similarity >= 0.75 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-dark-card text-slate-400 border border-dark-border'}">${cPct}%</span>
+            </div>
+            <div class="w-full h-36 rounded-lg bg-dark-surface border border-dark-border flex items-center justify-center overflow-hidden">
+              <img src="${c.display_url || c.image_url}" class="max-h-full max-w-full object-cover w-full h-full" alt="Candidate ${idx + 1}" />
+            </div>
+            <div class="text-[11px] font-mono text-slate-400 truncate">${c.title || c.source}</div>
+            <div class="w-full bg-dark-card rounded-full h-1.5 overflow-hidden">
+              <div class="h-1.5 rounded-full ${c.highest_similarity >= 0.75 ? 'bg-gradient-to-r from-amber-400 to-orange-500' : 'bg-slate-600'}" style="width: ${cPct}%"></div>
+            </div>
+          `;
+          cGrid.appendChild(card);
+        });
+      }
+
+      // Evidence & Blockchain Section Rendering
+      const evContainer = document.getElementById('evidence-content-container');
+      const bcContainer = document.getElementById('blockchain-receipt-container');
+      const bcStatusPill = document.getElementById('bc-status-pill');
+
+      if (isMatch && data.evidence_record) {
+        const ev = data.evidence_record;
+        evContainer.innerHTML = `
+          <div class="space-y-2 text-xs font-mono">
+            <div class="flex justify-between py-1 border-b border-dark-border">
+              <span class="text-slate-400">Evidence ID:</span>
+              <span class="text-slate-200">${ev.evidence_id}</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-dark-border">
+              <span class="text-slate-400">Biometric Model:</span>
+              <span class="text-slate-200">${ev.model_name}</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-dark-border">
+              <span class="text-slate-400">Decision Status:</span>
+              <span class="text-emerald-400 font-bold">HIGH_CONFIDENCE_MATCH</span>
+            </div>
+            <div class="flex flex-col gap-1 pt-2">
+              <div class="flex justify-between">
+                <span class="text-slate-400">Canonical SHA-256 Fingerprint:</span>
+                <button onclick="copyToClipboard('${data.evidence_hash}')" class="text-[11px] text-amber-400 hover:underline">Copy</button>
+              </div>
+              <div class="p-2.5 rounded-xl bg-dark-bg text-emerald-400 text-xs font-mono break-all border border-dark-border select-all">
+                ${data.evidence_hash}
+              </div>
+            </div>
+          </div>
+        `;
+        document.getElementById('evidence-raw-json').innerText = JSON.stringify(ev, null, 2);
+
+        const receipt = data.blockchain_receipt;
+        bcStatusPill.className = "px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
+        bcStatusPill.innerText = "CONFIRMED";
+        bcContainer.innerHTML = `
+          <div class="space-y-2 text-xs font-mono">
+            <div class="flex justify-between py-1 border-b border-dark-border">
+              <span class="text-slate-400">Block Number:</span>
+              <span class="text-slate-200 font-bold">#${receipt.block_number}</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-dark-border">
+              <span class="text-slate-400">Gas Used:</span>
+              <span class="text-slate-200">${receipt.gas_used.toLocaleString()}</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-dark-border">
+              <span class="text-slate-400">Smart Contract:</span>
+              <span class="text-slate-300 truncate max-w-[200px]">${receipt.contract_address}</span>
+            </div>
+            <div class="flex flex-col gap-1 pt-2">
+              <div class="flex justify-between">
+                <span class="text-slate-400">Transaction Hash:</span>
+                <button onclick="copyToClipboard('${receipt.transaction_hash}')" class="text-[11px] text-amber-400 hover:underline">Copy</button>
+              </div>
+              <div class="p-2.5 rounded-xl bg-dark-bg text-amber-400 text-xs font-mono break-all border border-dark-border select-all">
+                ${receipt.transaction_hash}
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        // No match - clearly explain that evidence & blockchain are safely skipped
+        evContainer.innerHTML = `
+          <div class="p-4 rounded-xl bg-dark-bg border border-dark-border text-xs text-slate-400 space-y-2">
+            <div class="flex items-center gap-2 text-amber-400 font-bold">
+              <span>🛡️</span> Evidence Generation Skipped
+            </div>
+            <p>Because the similarity score (${simPct}) did not reach the strict 75% identification threshold, no evidence record was compiled.</p>
+            <p class="text-[11px] text-slate-500">Zero unverified or false-positive records are generated.</p>
+          </div>
+        `;
+        document.getElementById('evidence-raw-json').innerText = "No evidence generated for non-match.";
+
+        bcStatusPill.className = "px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-slate-800 text-slate-400 border border-dark-border";
+        bcStatusPill.innerText = "SKIPPED";
+        bcContainer.innerHTML = `
+          <div class="p-4 rounded-xl bg-dark-bg border border-dark-border text-xs text-slate-400 space-y-2">
+            <div class="flex items-center gap-2 text-slate-300 font-bold">
+              <span>⛓️</span> Ledger Untainted
+            </div>
+            <p>Blockchain notarization was safely skipped. Non-matches are not written to the smart contract, protecting ledger integrity and saving gas.</p>
+          </div>
+        `;
+      }
+
+      showToast(isMatch ? 'Match confirmed & notarized on-chain!' : 'Pipeline complete (No match detected)', isMatch ? '✓' : 'ℹ');
+    }
+
+    function toggleEvidenceJson() {
+      const el = document.getElementById('evidence-raw-json');
+      el.classList.toggle('hidden');
+    }
+
+    function goToVerificationWithCurrent() {
+      if (currentPipelineResult && currentPipelineResult.evidence_hash) {
+        document.getElementById('verify-input').value = currentPipelineResult.evidence_hash;
+        showView('verify');
+        executeVerification();
+      } else {
+        showToast('Current run had NO MATCH. Switching to Verify page and loading latest valid hash...', 'ℹ');
+        showView('verify');
+        pasteLatestHashToVerify();
+      }
+    }
+
+    // RELIABLE LATEST HASH LOADER
+    async function pasteLatestHashToVerify() {
+      // 1. Check if active run has a hash
+      if (currentPipelineResult && currentPipelineResult.evidence_hash) {
+        document.getElementById('verify-input').value = currentPipelineResult.evidence_hash;
+        showToast('Loaded active pipeline hash!', '📋');
+        executeVerification();
+        return;
+      }
+
+      // 2. Fetch from backend audit history
+      try {
+        const res = await fetch('/api/history');
+        const list = await res.json();
+        const validRun = list.find(item => item.evidence_hash && item.evidence_hash.length >= 32);
+        if (validRun) {
+          document.getElementById('verify-input').value = validRun.evidence_hash;
+          showToast(`Loaded notarized hash from ${validRun.pipeline_id}!`, '📋');
+          executeVerification();
+          return;
+        }
+      } catch (e) {}
+
+      // 3. Fallback: prompt user to run standard target
+      showToast('No notarized hash in session. Click "Load Standard Test Face" to register one!', 'ℹ');
+    }
+
+    // LOAD RECENT HASHES FOR 1-CLICK VERIFICATION (Persisted Across Restarts)
+    async function loadRecentHashesForVerify() {
+      const listEl = document.getElementById('recent-hashes-list');
+      try {
+        const res = await fetch('/api/blockchain/records');
+        const data = await res.json();
+        const records = data.records || [];
+
+        if (!records || records.length === 0) {
+          // Fallback to in-memory history if any
+          const hRes = await fetch('/api/history');
+          const hList = await hRes.json();
+          const notarized = hList.filter(item => item.evidence_hash && item.evidence_hash.length >= 32);
+          if (!notarized || notarized.length === 0) {
+            listEl.innerHTML = `
+              <div class="text-slate-500 text-xs py-2">
+                No on-chain notarizations found in persistent registry. Run "Load Standard Test Face" on the Discovery tab to create a blockchain record.
+              </div>
+            `;
+            return;
+          }
+          listEl.innerHTML = notarized.slice(0, 5).map(item => `
+            <div class="flex items-center justify-between p-2.5 rounded-lg bg-dark-bg border border-dark-border">
+              <div class="truncate max-w-[260px] sm:max-w-[380px]">
+                <span class="text-amber-400 font-bold">${item.pipeline_id}</span>
+                <span class="text-slate-500 mx-1">·</span>
+                <span class="text-slate-300 font-mono text-[11px]">${item.evidence_hash.substring(0, 24)}...</span>
+              </div>
+              <button onclick="document.getElementById('verify-input').value='${item.evidence_hash}'; executeVerification();" class="px-2.5 py-1 text-[11px] font-semibold rounded bg-dark-card hover:bg-dark-hover border border-dark-border text-amber-300 transition">
+                Verify Now
+              </button>
+            </div>
+          `).join('');
+          return;
+        }
+
+        listEl.innerHTML = records.slice(0, 5).map(rec => `
+          <div class="flex items-center justify-between p-2.5 rounded-lg bg-dark-bg border border-dark-border">
+            <div class="truncate max-w-[260px] sm:max-w-[380px]">
+              <span class="text-emerald-400 font-bold">Block #${rec.block_number}</span>
+              <span class="text-slate-500 mx-1">·</span>
+              <span class="text-slate-300 font-mono text-[11px]">${rec.evidence_hash.substring(0, 22)}...</span>
+              <span class="text-slate-500 text-[10px] hidden sm:inline ml-2">(${rec.registered_at})</span>
+            </div>
+            <button onclick="document.getElementById('verify-input').value='${rec.evidence_hash}'; executeVerification();" class="px-2.5 py-1 text-[11px] font-semibold rounded bg-dark-card hover:bg-dark-hover border border-dark-border text-amber-300 transition">
+              Verify Now
+            </button>
+          </div>
+        `).join('');
+      } catch (e) {
+        listEl.innerHTML = `<div class="text-rose-400 text-xs">Failed to load recent hashes: ${e.message}</div>`;
+      }
+    }
+
+    // BLOCKCHAIN VERIFICATION LOGIC
+    async function executeVerification() {
+      let inputVal = document.getElementById('verify-input').value.trim();
+      if (!inputVal) {
+        showToast('Please enter an evidence hash or JSON', '✕');
+        return;
+      }
+
+      // Sanitize input (remove wrapping quotes or brackets)
+      if ((inputVal.startsWith('"') && inputVal.endsWith('"')) || (inputVal.startsWith("'") && inputVal.endsWith("'"))) {
+        inputVal = inputVal.substring(1, inputVal.length - 1).trim();
+      }
+
+      const resBox = document.getElementById('verify-result-box');
+      resBox.classList.remove('hidden');
+      resBox.innerHTML = `<div class="text-xs font-mono text-amber-400 animate-pulse">Querying on-chain smart contract EvidenceRegistry.sol...</div>`;
+
+      let payload = {};
+      if (inputVal.startsWith('{')) {
+        try {
+          payload.evidence = JSON.parse(inputVal);
+        } catch(e) {
+          payload.hash = inputVal;
+        }
+      } else {
+        payload.hash = inputVal;
+      }
+
+      try {
+        const res = await fetch('/api/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.verified) {
+          resBox.className = "rounded-2xl border p-6 glow-green bg-emerald-950/30 border-emerald-500/40 space-y-4";
+          resBox.innerHTML = `
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-lg">✓</div>
+              <div>
+                <h4 class="font-extrabold text-emerald-300 text-sm">CRYPTOGRAPHICALLY VERIFIED ON BLOCKCHAIN</h4>
+                <p class="text-xs text-slate-300">${data.reason}</p>
+              </div>
+            </div>
+            <div class="pt-3 border-t border-emerald-500/20 text-xs font-mono space-y-2">
+              <div class="flex justify-between text-slate-400"><span>Verified Fingerprint:</span> <span class="text-slate-200 select-all font-bold">${data.evidence_hash}</span></div>
+              <div class="flex justify-between text-slate-400"><span>Registration Timestamp:</span> <span class="text-emerald-400 font-bold">${new Date(data.blockchain_timestamp * 1000).toUTCString()}</span></div>
+              <div class="flex justify-between text-slate-400"><span>Smart Contract Notary:</span> <span class="text-slate-300 font-mono">${data.uploader || '0x5FbDB2315678afecb367f032d93F642f64180aa3'}</span></div>
+              <div class="flex justify-between text-slate-400"><span>On-Chain Status:</span> <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">IMMUTABLE RECORD VALID</span></div>
+            </div>
+          `;
+        } else {
+          resBox.className = "rounded-2xl border p-6 glow-red bg-rose-950/30 border-rose-500/40 space-y-4";
+          resBox.innerHTML = `
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center font-bold text-lg">✕</div>
+              <div>
+                <h4 class="font-extrabold text-rose-300 text-sm">VERIFICATION FAILED: RECORD NOT FOUND OR TAMPERED</h4>
+                <p class="text-xs text-slate-300">${data.reason}</p>
+              </div>
+            </div>
+            <div class="pt-3 border-t border-rose-500/20 text-xs font-mono space-y-2">
+              <div class="flex justify-between text-slate-400"><span>Target Fingerprint:</span> <span class="text-slate-200 select-all">${data.evidence_hash || inputVal}</span></div>
+              <div class="flex justify-between text-slate-400"><span>Verification State:</span> <span class="text-rose-400 font-bold">${data.verification_state}</span></div>
+            </div>
+          `;
+        }
+      } catch (err) {
+        resBox.className = "rounded-2xl border p-6 bg-slate-900 border-slate-700 text-rose-400 text-xs";
+        resBox.innerText = 'Verification query failed: ' + err.message;
+      }
+    }
+
+    // MALICIOUS TAMPER SIMULATION
+    async function executeTamperDemo() {
+      const resBox = document.getElementById('verify-result-box');
+      resBox.classList.remove('hidden');
+      resBox.className = "rounded-2xl border p-6 bg-dark-bg border-amber-500/50 space-y-4";
+      resBox.innerHTML = `<div class="text-xs font-mono text-amber-400 animate-pulse">Running live tamper simulation...</div>`;
+
+      try {
+        const payload = (currentPipelineResult && currentPipelineResult.evidence_record) ? { evidence: currentPipelineResult.evidence_record } : null;
+        const res = await fetch('/api/verify/tamper-demo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        resBox.innerHTML = `
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-amber-400 text-sm flex items-center gap-2">
+              <span>⚠️</span> Live Tamper Detection Demonstration
+            </h4>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">TAMPER DETECTED</span>
+          </div>
+
+          <p class="text-xs text-slate-300">${data.tampered.tamper_explanation}</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/40 text-xs font-mono space-y-2">
+              <span class="text-emerald-400 font-bold">1. Legitimate Evidence (Registered)</span>
+              <div class="text-[11px] text-slate-400">Score: <span class="text-white font-bold">${data.original.evidence.similarity_score}</span></div>
+              <div class="text-[10px] text-slate-300 break-all bg-black/40 p-2 rounded">${data.original.sha256_hash}</div>
+              <div class="text-[10px] text-emerald-400">✓ On-Chain: ${data.original.on_chain ? 'FOUND ON SMART CONTRACT' : 'VALID'}</div>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-slate-900 border border-rose-500/40 text-xs font-mono space-y-2">
+              <span class="text-rose-400 font-bold">2. Maliciously Altered (Forged Score)</span>
+              <div class="text-[11px] text-slate-400">Score: <span class="text-rose-300 font-bold">${data.tampered.evidence.similarity_score}</span></div>
+              <div class="text-[10px] text-slate-300 break-all bg-black/40 p-2 rounded">${data.tampered.sha256_hash}</div>
+              <div class="text-[10px] text-rose-400 font-bold">✕ On-Chain: REJECTED (Hash Diverged)</div>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        resBox.innerText = 'Tamper simulation failed: ' + err.message;
+      }
+    }
+
+    // AUDIT HISTORY FETCHER
+    async function fetchHistory() {
+      const tbody = document.getElementById('history-table-body');
+      try {
+        const res = await fetch('/api/history');
+        const list = await res.json();
+        if (!list || list.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-8 text-center text-slate-500 font-sans">No pipeline runs executed yet.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = list.map(item => `
+          <tr class="hover:bg-dark-hover transition">
+            <td class="px-6 py-3 font-bold text-amber-400">${item.pipeline_id}</td>
+            <td class="px-6 py-3 text-slate-400">${item.created_at}</td>
+            <td class="px-6 py-3 text-slate-200 truncate max-w-[120px]">${item.input_file}</td>
+            <td class="px-6 py-3 font-bold ${item.similarity >= 0.75 ? 'text-emerald-400' : 'text-amber-400'}">${(item.similarity * 100).toFixed(1)}%</td>
+            <td class="px-6 py-3 text-slate-400 truncate max-w-[160px] font-mono select-all">${item.evidence_hash || 'None (No Match)'}</td>
+            <td class="px-6 py-3 text-slate-300">${item.block_number ? '#' + item.block_number : '—'}</td>
+            <td class="px-6 py-3">
+              ${item.evidence_hash ? `
+                <button onclick="document.getElementById('verify-input').value='${item.evidence_hash}'; showView('verify'); executeVerification();" class="text-amber-400 hover:underline">
+                  Verify
+                </button>
+              ` : `<span class="text-slate-500">Skipped</span>`}
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-4 text-rose-400">Failed to fetch history</td></tr>`;
+      }
+    }
+
+    // Fetch initial node health
+    async function checkHealth() {
+      try {
+        const res = await fetch('/api/health');
+        const data = await res.json();
+        if (data.status === 'healthy') {
+          document.getElementById('node-status-text').innerText = `Sim-EVM #${data.block_number} (Chain: ${data.chain_id})`;
+        }
+      } catch (e) {}
+    }
+    checkHealth();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "veriface-chain-contracts",
+  "version": "1.0.0",
+  "description": "Smart contracts for VeriFace Chain tamper-evident evidence verification",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "node": "hardhat node",
+    "deploy": "hardhat run scripts/deploy.js --network localhost"
+  },
+  "keywords": [
+    "veriface",
+    "blockchain",
+    "evidence",
+    "ethereum",
+    "solidity"
+  ],
+  "author": "VeriFace Chain Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.22.0"
+  }
+}

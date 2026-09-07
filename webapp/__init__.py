@@ -1,0 +1,1 @@
+"""VeriFace Chain Web Application"""

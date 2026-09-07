@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERIFACE CHAIN - Face Verification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: #888;
+            font-size: 1rem;
+        }
+        
+        .upload-area {
+            background: rgba(255,255,255,0.05);
+            border: 2px dashed #00d4ff;
+            border-radius: 20px;
+            padding: 60px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+        
+        .upload-area:hover, .upload-area.dragover {
+            background: rgba(0,212,255,0.1);
+            border-color: #7b2cbf;
+        }
+        
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        
+        .upload-text {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .upload-hint {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        #fileInput, #pasteInput {
+            display: none;
+        }
+        
+        .preview-area {
+            display: none;
+            margin-bottom: 30px;
+        }
+        
+        .preview-container {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+        
+        .image-preview {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .image-preview img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+        }
+        
+        .image-info {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 25px;
+        }
+        
+        .image-info h3 {
+            margin-bottom: 20px;
+            color: #00d4ff;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .info-label {
+            color: #888;
+        }
+        
+        .info-value {
+            font-weight: bold;
+        }
+        
+        .btn {
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            color: #fff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .processing {
+            display: none;
+            margin-bottom: 30px;
+        }
+        
+        .stages {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .stage {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 180px;
+            transition: all 0.3s ease;
+        }
+        
+        .stage.pending {
+            opacity: 0.5;
+        }
+        
+        .stage.processing {
+            background: rgba(0,212,255,0.2);
+            border: 1px solid #00d4ff;
+        }
+        
+        .stage.completed {
+            background: rgba(0,255,136,0.2);
+            border: 1px solid #00ff88;
+        }
+        
+        .stage.error {
+            background: rgba(255,0,86,0.2);
+            border: 1px solid #ff0056;
+        }
+        
+        .stage-icon {
+            font-size: 1.5rem;
+        }
+        
+        .stage-name {
+            font-size: 0.85rem;
+        }
+        
+        .results {
+            display: none;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+        }
+        
+        .results h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #00d4ff;
+        }
+        
+        .result-card {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .result-main {
+            flex: 2;
+        }
+        
+        .result-sidebar {
+            flex: 1;
+        }
+        
+        .match-result {
+            text-align: center;
+            padding: 40px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .match-result.found {
+            background: linear-gradient(135deg, rgba(0,255,136,0.2), rgba(0,212,255,0.2));
+            border: 2px solid #00ff88;
+        }
+        
+        .match-result.not-found {
+            background: linear-gradient(135deg, rgba(255,0,86,0.2), rgba(255,136,0,0.2));
+            border: 2px solid #ff0056;
+        }
+        
+        .match-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+        
+        .match-title {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .match-confidence {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+        
+        .match-label {
+            color: #888;
+            margin-top: 10px;
+        }
+        
+        .evidence-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .evidence-section h3 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .hash-display {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            word-break: break-all;
+            color: #00ff88;
+        }
+        
+        .blockchain-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .blockchain-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .blockchain-label {
+            color: #888;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .blockchain-value {
+            font-weight: bold;
+            font-size: 0.9rem;
+            word-break: break-all;
+        }
+        
+        .provenance-chain {
+            margin-top: 20px;
+        }
+        
+        .provenance-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 0;
+            border-left: 2px solid #00d4ff;
+            margin-left: 10px;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .provenance-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #00d4ff;
+        }
+        
+        .provenance-stage {
+            font-weight: bold;
+            min-width: 180px;
+        }
+        
+        .provenance-status {
+            color: #00ff88;
+        }
+        
+        .reset-btn {
+            display: block;
+            margin: 30px auto 0;
+            background: transparent;
+            border: 2px solid #888;
+            padding: 12px 30px;
+            border-radius: 25px;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .reset-btn:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+        
+        @media (max-width: 768px) {
+            .preview-container, .result-card {
+                flex-direction: column;
+            }
+            
+            .blockchain-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 VERIFACE CHAIN</h1>
+            <p class="subtitle">Face Verification with Blockchain Provenance</p>
+        </header>
+        
+        <!-- Upload Area -->
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📷</div>
+            <p class="upload-text">Paste image (Ctrl+V) or Drop here</p>
+            <p class="upload-hint">or click to browse</p>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+        
+        <!-- Preview Area -->
+        <div class="preview-area" id="previewArea">
+            <div class="preview-container">
+                <div class="image-preview">
+                    <img id="previewImage" src="" alt="Uploaded Image">
+                    <button class="btn" id="verifyBtn">🔍 Start Verification</button>
+                </div>
+                <div class="image-info">
+                    <h3>📋 Image Details</h3>
+                    <div class="info-item">
+                        <span class="info-label">Filename</span>
+                        <span class="info-value" id="fileName">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Size</span>
+                        <span class="info-value" id="fileSize">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Dimensions</span>
+                        <span class="info-value" id="fileDimensions">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Type</span>
+                        <span class="info-value" id="fileType">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Image Hash</span>
+                        <span class="info-value" id="imageHash">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Processing -->
+        <div class="processing" id="processing">
+            <h2 style="text-align: center; margin-bottom: 30px;">⚙️ Verification Pipeline</h2>
+            <div class="stages">
+                <div class="stage pending" id="stage1">
+                    <span class="stage-icon">📤</span>
+                    <span class="stage-name">Input Acquisition</span>
+                </div>
+                <div class="stage pending" id="stage2">
+                    <span class="stage-icon">👤</span>
+                    <span class="stage-name">Face Recognition</span>
+                </div>
+                <div class="stage pending" id="stage3">
+                    <span class="stage-icon">🌐</span>
+                    <span class="stage-name">Web/Social Search</span>
+                </div>
+                <div class="stage pending" id="stage4">
+                    <span class="stage-icon">📊</span>
+                    <span class="stage-name">Candidate Analysis</span>
+                </div>
+                <div class="stage pending" id="stage5">
+                    <span class="stage-icon">🎯</span>
+                    <span class="stage-name">Confidence Engine</span>
+                </div>
+                <div class="stage pending" id="stage6">
+                    <span class="stage-icon">📁</span>
+                    <span class="stage-name">Evidence Vault</span>
+                </div>
+                <div class="stage pending" id="stage7">
+                    <span class="stage-icon">🔐</span>
+                    <span class="stage-name">Crypto Engine</span>
+                </div>
+                <div class="stage pending" id="stage8">
+                    <span class="stage-icon">⛓️</span>
+                    <span class="stage-name">Blockchain Record</span>
+                </div>
+                <div class="stage pending" id="stage9">
+                    <span class="stage-icon">✅</span>
+                    <span class="stage-name">Verification</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results -->
+        <div class="results" id="results">
+            <h2>📋 Verification Results</h2>
+            
+            <div class="result-card">
+                <div class="result-main">
+                    <div class="match-result" id="matchResult">
+                        <div class="match-icon" id="matchIcon">🔍</div>
+                        <div class="match-title" id="matchTitle">Processing...</div>
+                        <div class="match-confidence" id="matchConfidence">-</div>
+                        <div class="match-label">Confidence Score</div>
+                    </div>
+                </div>
+                
+                <div class="result-sidebar">
+                    <div class="evidence-section">
+                        <h3>🔗 Blockchain Record</h3>
+                        <div class="blockchain-info">
+                            <div class="blockchain-item">
+                                <div class="blockchain-label">Transaction Hash</div>
+                                <div class="blockchain-value" id="txHash">-</div>
+                            </div>
+                            <div class="blockchain-item">
+                                <div class="blockchain-label">Block Number</div>
+                                <div class="blockchain-value" id="blockNumber">-</div>
+                            </div>
+                            <div class="blockchain-item">
+                                <div class="blockchain-label">Confirmations</div>
+                                <div class="blockchain-value" id="confirmations">-</div>
+                            </div>
+                            <div class="blockchain-item">
+                                <div class="blockchain-label">Timestamp</div>
+                                <div class="blockchain-value" id="timestamp">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="evidence-section">
+                        <h3>🔐 Evidence Hash</h3>
+                        <div class="hash-display" id="evidenceHash">-</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="evidence-section">
+                <h3>📜 Provenance Chain</h3>
+                <div class="provenance-chain" id="provenanceChain">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+            
+            <button class="reset-btn" id="resetBtn">🔄 New Verification</button>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://127.0.0.1:8000';
+        let currentImage = null;
+        let sessionId = null;
+        let imageFile = null;
+        
+        // Elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const previewArea = document.getElementById('previewArea');
+        const previewImage = document.getElementById('previewImage');
+        const verifyBtn = document.getElementById('verifyBtn');
+        const processing = document.getElementById('processing');
+        const results = document.getElementById('results');
+        
+        // Upload handlers
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleImage(file);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleImage(file);
+        });
+        
+        // Paste handler
+        document.addEventListener('paste', (e) => {
+            const items = e.clipboardData.items;
+            for (let item of items) {
+                if (item.type.startsWith('image/')) {
+                    const file = item.getAsFile();
+                    handleImage(file);
+                    break;
+                }
+            }
+        });
+        
+        function handleImage(file) {
+            imageFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                currentImage = e.target.result;
+                previewImage.src = currentImage;
+                
+                // Update info
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('fileSize').textContent = formatBytes(file.size);
+                document.getElementById('fileType').textContent = file.type;
+                
+                // Get dimensions
+                const img = new Image();
+                img.onload = () => {
+                    document.getElementById('fileDimensions').textContent = `${img.width} × ${img.height}`;
+                };
+                img.src = currentImage;
+                
+                // Calculate image hash (simple)
+                document.getElementById('imageHash').textContent = simpleHash(currentImage);
+                
+                uploadArea.style.display = 'none';
+                previewArea.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+        
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash).toString(16).padStart(8, '0').toUpperCase();
+        }
+        
+        // Verification
+        verifyBtn.addEventListener('click', startVerification);
+        
+        async function startVerification() {
+            if (!imageFile) return;
+            
+            previewArea.style.display = 'none';
+            processing.style.display = 'block';
+            results.style.display = 'none';
+            
+            // Reset stages
+            for (let i = 1; i <= 9; i++) {
+                setStageStatus(i, 'pending');
+            }
+            
+            try {
+                // Step 1: Create session
+                setStageStatus(1, 'processing');
+                const sessionRes = await fetch(`${API_BASE}/api/v1/verify/sessions`, {
+                    method: 'POST'
+                });
+                const sessionData = await sessionRes.json();
+                sessionId = sessionData.session_id;
+                await delay(500);
+                setStageStatus(1, 'completed');
+                
+                // Step 2: Upload and process biometric
+                setStageStatus(2, 'processing');
+                const uploadFormData = new FormData();
+                uploadFormData.append('file', imageFile);
+                await fetch(`${API_BASE}/api/v1/verify/${sessionId}/upload?auto_process=false`, {
+                    method: 'POST',
+                    body: uploadFormData
+                });
+                await delay(800);
+                setStageStatus(2, 'completed');
+                
+                // Step 3: Discovery (Web/Social Search)
+                setStageStatus(3, 'processing');
+                await fetch(`${API_BASE}/api/v1/verify/${sessionId}/discover`, {
+                    method: 'POST'
+                });
+                await delay(800);
+                setStageStatus(3, 'completed');
+                
+                // Step 4: Candidate Analysis
+                setStageStatus(4, 'processing');
+                await fetch(`${API_BASE}/api/v1/verify/${sessionId}/analyze-candidates`, {
+                    method: 'POST'
+                });
+                await delay(500);
+                setStageStatus(4, 'completed');
+                
+                // Step 5: Confidence Engine
+                setStageStatus(5, 'processing');
+                await fetch(`${API_BASE}/api/v1/verify/${session_id}/confidence`, {
+                    method: 'POST'
+                });
+                await delay(500);
+                setStageStatus(5, 'completed');
+                
+                // Step 6: Evidence Vault
+                setStageStatus(6, 'processing');
+                await fetch(`${API_BASE}/api/v1/verify/${sessionId}/evidence`, {
+                    method: 'POST'
+                });
+                await delay(500);
+                setStageStatus(6, 'completed');
+                
+                // Step 7: Crypto Engine
+                setStageStatus(7, 'processing');
+                await fetch(`${API_BASE}/api/v1/verify/${sessionId}/crypto`, {
+                    method: 'POST'
+                });
+                await delay(500);
+                setStageStatus(7, 'completed');
+                
+                // Step 8: Blockchain
+                setStageStatus(8, 'processing');
+                await fetch(`${API_BASE}/api/v1/verify/${sessionId}/blockchain`, {
+                    method: 'POST'
+                });
+                await delay(800);
+                setStageStatus(8, 'completed');
+                
+                // Step 9: Verification
+                setStageStatus(9, 'processing');
+                const verifyRes = await fetch(`${API_BASE}/api/v1/verify/${sessionId}/verify`);
+                const verifyData = await verifyRes.json();
+                await delay(500);
+                setStageStatus(9, 'completed');
+                
+                // Show results
+                showResults(verifyData);
+                
+            } catch (error) {
+                console.error('Verification error:', error);
+                alert('Error during verification: ' + error.message);
+                processing.style.display = 'none';
+                previewArea.style.display = 'block';
+            }
+        }
+        
+        function setStageStatus(stageNum, status) {
+            const stage = document.getElementById(`stage${stageNum}`);
+            stage.className = `stage ${status}`;
+        }
+        
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        async function showResults(data) {
+            processing.style.display = 'none';
+            results.style.display = 'block';
+            
+            // Match result
+            const matchResult = document.getElementById('matchResult');
+            const matchIcon = document.getElementById('matchIcon');
+            const matchTitle = document.getElementById('matchTitle');
+            const matchConfidence = document.getElementById('matchConfidence');
+            
+            if (data.match_found) {
+                matchResult.className = 'match-result found';
+                matchIcon.textContent = '✅';
+                matchTitle.textContent = 'MATCH FOUND';
+            } else {
+                matchResult.className = 'match-result not-found';
+                matchIcon.textContent = '❌';
+                matchTitle.textContent = 'NO MATCH';
+            }
+            
+            matchConfidence.textContent = `${(data.confidence_score * 100).toFixed(1)}%`;
+            
+            // Get blockchain data
+            try {
+                const bcRes = await fetch(`${API_BASE}/api/v1/verify/${sessionId}/blockchain`);
+                const bcData = await bcRes.json();
+                
+                document.getElementById('txHash').textContent = bcData.transaction_hash?.substring(0, 16) + '...' || '-';
+                document.getElementById('blockNumber').textContent = bcData.block_number || '-';
+                document.getElementById('confirmations').textContent = bcData.confirmations || '-';
+                document.getElementById('timestamp').textContent = bcData.timestamp ? new Date(bcData.timestamp).toLocaleString() : '-';
+            } catch (e) {
+                console.log('Blockchain data not available');
+            }
+            
+            // Evidence hash
+            document.getElementById('evidenceHash').textContent = data.evidence_hash || '-';
+            
+            // Provenance chain
+            const provenanceEl = document.getElementById('provenanceChain');
+            const stages = [
+                'INPUT_ACQUISITION',
+                'BIOMETRIC_PROCESSING',
+                'CANDIDATE_INTELLIGENCE',
+                'CONFIDENCE_ENGINE',
+                'EVIDENCE_VAULT',
+                'CRYPTO_ENGINE',
+                'BLOCKCHAIN',
+                'VERIFICATION'
+            ];
+            
+            provenanceEl.innerHTML = stages.map((stage, i) => `
+                <div class="provenance-item">
+                    <span class="provenance-stage">${stage.replace(/_/g, ' ')}</span>
+                    <span class="provenance-status">✅ Completed</span>
+                </div>
+            `).join('');
+        }
+        
+        // Reset
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            currentImage = null;
+            sessionId = null;
+            imageFile = null;
+            results.style.display = 'none';
+            processing.style.display = 'none';
+            previewArea.style.display = 'none';
+            uploadArea.style.display = 'block';
+            
+            // Reset stages
+            for (let i = 1; i <= 9; i++) {
+                setStageStatus(i, 'pending');
+            }
+        });
+    </script>
+</body>
+</html>
